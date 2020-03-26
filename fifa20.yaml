@@ -1,0 +1,22 @@
+---
+base_url: 'https://utas.external.s2.fut.ea.com/ut/game/fifa20/'
+# logfile: fifa.log
+params:
+  start: 0
+  num: 21  # must be market_page_size+1
+
+market_page_size: 20
+market_page_limit: 3
+
+headers:
+  X-UT-SID: 7c76aa7a-8579-41fa-a139-4cce75826ed3  # session id
+  DNT: '1'
+  Accept: '*/*'
+  Referer: 'https://www.easports.com/fifa/ultimate-team/web-app/'
+  User-Agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+  Origin: 'https://www.easports.com'
+  Sec-Fetch-Dest: 'empty'
+  Sec-Fetch-Site: 'cross-site'
+  Sec-Fetch-Mode: 'cors'
+  Accept-Encoding: 'gzip, deflate, br'
+  Accept-Language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6,fr;q=0.5'

@@ -1,0 +1,36 @@
+---
+- name: "Allan Saint-Maximin"
+  resourceId: 216388
+  params:
+    type: player
+    maskedDefId: 216388
+    minb: 300
+    maxb: 900
+  rating: 79
+  prices:
+    buy_limit: 900
+    start: 1800
+    buynow: 2000
+  desc: "https://www.futbin.com/20/player/20783/allan-saint-maximin"
+- name: "Hunter"
+  resourceId: 5003111
+  params:
+    type: training
+    cat: playStyle
+    playStyle: 266
+    minb: 300
+    maxb: 6500
+  prices:
+    start: 7800
+    buynow: 8400
+- name: "Julio Buffarini"
+  params:
+    maskedDefId: 215108
+    maxb: 1500
+    type: player
+  prices:
+    buy_limit: 1600
+    buynow: 2800
+    start: 2500
+  rating: 75
+  resourceId: 50546756
