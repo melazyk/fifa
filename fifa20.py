@@ -260,8 +260,9 @@ class FifaWeb(object):
         r = self.get(url)
         try:
             first = r.json()['auctionInfo'][0]
-        except (KeyError, IndexError):
+        except (KeyError, IndexError, ):
             self.info('Try one more time, or increase maxb')
+            sys.exit(1)
 
         # print(json.dumps(first))
         item_tmpl = [{
@@ -285,7 +286,7 @@ class FifaWeb(object):
 def main():
     parser = argparse.ArgumentParser(description='Fifa Config Parser')
     parser.add_argument('-c', '--config', type=str, help='config yaml file', required=True)
-    parser.add_argument('-i', '--items', type=str, help='items yaml file', required=True)
+    parser.add_argument('-i', '--items', type=str, help='items yaml file')
     parser.add_argument('--decode-url', type=str, default='',
                         help='decode search url copied from browser debug console')
     parser.add_argument('--tries', type=int, default=900,
