@@ -57,9 +57,9 @@ def itemdata2tags(itemdata):
     return tags
 
 
-def move_maxb(maxb, multiplier=1.05, delta=100):
+def move_maxb(maxb, multiplier=1.01, delta=100):
     new_maxb = maxb*multiplier // 100 * 100
-    return new_maxb if new_maxb - maxb > 100 else maxb + delta
+    return new_maxb if abs(new_maxb - maxb) > abs(delta) else maxb + delta
 
 
 class FifaWeb(object):
@@ -227,23 +227,22 @@ class FifaWeb(object):
         if not maxb:
             maxb = self.Items[index]['params']['maxb']
 
-        page = 0
-        while True:
+        for page in range(self.cfg['market_page_limit']):
             items = self.SearchByIndex(index, page=page, maxb=maxb)
-            self.info(items)
             random_sleep(0.5, 1.5)
-            if not items:
-                page = 0
-                maxb = move_maxb(maxb)
-                self.info('next price {}'.format(maxb))
-                continue
+            if not items and page == 0:
+                maxb = move_maxb(maxb, 1.05, delta=-100)
+                break
 
             for item in items:
                 self.SaveItem(item)
-                self.info(item)
+                # self.info(item)
 
-            if len(items) != self.cfg['market_page_size']:  # last not empty page
+            if len(items) <= self.cfg['market_page_size']:  # last not empty page
                 break
+
+            if page == self.cfg['market_page_limit'] - 1:  # all 3 pages were full
+                maxb = move_maxb(maxb, 0.97, delta=-100)
 
         return maxb
 
@@ -393,9 +392,10 @@ def main():
     if args.dump:
         maxb = 0  # set default value from item yaml
         for i in range(args.tries):
-            fifa.info({"attempts": i})
+            fifa.info({"attempt": i})
             # save maxb from preview search
             maxb = fifa.DumpItemByIndex(0, maxb)
+            fifa.info('next price {}'.format(maxb))
             random_sleep(5, 15)
 
     if args.buy:
