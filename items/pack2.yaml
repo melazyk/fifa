@@ -1,0 +1,56 @@
+---
+- name: 'Saint-Maximin'
+  params:
+    maskedDefId: 216388
+    maxb: 3000
+    type: player
+  prices:
+    buy_limit: 3000
+    buynow: 5100
+    start: 3000
+  rating: 79
+  resourceId: 216388
+- name: 'Ngolo Kante'
+  params:
+    maskedDefId: 215914
+    maxb: 140000
+    type: player
+  prices:
+    buy_limit: 140000
+    buynow: 170000
+    start: 165000
+  rating: 89
+  resourceId: 215914
+- name: 'Bastian Schweinsteiger'
+  params:
+    maskedDefId: 121944
+    maxb: 2000
+    type: player
+  prices:
+    buy_limit: 2000
+    buynow: 23000
+    start: 6000
+  rating: 76
+  resourceId: 121944
+- name: 'David Villa'
+  params:
+    maskedDefId: 113422
+    maxb: 3500
+    type: player
+  prices:
+    buy_limit: 3500
+    buynow: 7000
+    start: 6500
+  rating: 79
+  resourceId: 113422
+- name: 'Sean Maguire'
+  params:
+    maskedDefId: 212223
+    maxb: 1000
+    type: player
+  prices:
+    buy_limit: 1000
+    buynow: 7000
+    start: 5000
+  rating: 71
+  resourceId: 212223
