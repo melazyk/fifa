@@ -1,0 +1,12 @@
+---
+- name: 'Naldo 80'
+  params:
+    lev: gold
+    maskedDefId: 171919
+    type: player
+  prices:
+    buy_limit: 3000
+    buynow: 6000
+    start: 6200
+  rating: 80
+  resourceId: 171919

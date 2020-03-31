@@ -1,0 +1,13 @@
+---
+- name: Hernandez
+  params:
+    lev: gold
+    maskedDefId: 178224
+    maxb: 1800
+    type: player
+  prices:
+    buy_limit: 800
+    buynow: 1800
+    start: 1700
+  rating: 78
+  resourceId: 67287088

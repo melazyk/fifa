@@ -5,10 +5,12 @@ import requests
 import yaml
 import json
 from random import randint, uniform
-from time import sleep
+from time import sleep, time_ns
 import argparse
 import logging
 from urllib import parse
+from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import ASYNCHRONOUS
 
 
 def blur_price(s):
@@ -29,6 +31,37 @@ def jsonize(text):
         return text
 
 
+def itemdata2tags(itemdata):
+    tag_keys = [
+        'rating',
+        'itemType',
+        'resourceId',
+        'cardsubtypeid',
+        'preferredPosition',
+        'rareflag',
+        'playStyle',
+        'leagueId',
+        'nation',
+        'attributeArray',
+        'skillmoves',
+        'weakfootabilitytypecode',
+        'attackingworkrate',
+        'defensiveworkrate',
+        'preferredfoot',
+    ]
+    tags = {}
+    for k in itemdata:
+        if k in tag_keys:
+            tags[k] = str(itemdata[k])
+
+    return tags
+
+
+def move_maxb(maxb, multiplier=1.05, delta=100):
+    new_maxb = maxb*multiplier // 100 * 100
+    return new_maxb if new_maxb - maxb > 100 else maxb + delta
+
+
 class FifaWeb(object):
     def __init__(self, config_file):
         with open(os.path.expanduser(config_file)) as f:
@@ -46,6 +79,15 @@ class FifaWeb(object):
                     "level": "%(levelname)s", "message": %(message)s }'
         ))
         self.Log.addHandler(fh)
+
+        if 'influxdb' in self.cfg:
+            self.influxdb = InfluxDBClient(
+                url=self.cfg['influxdb']['url'],
+                token=self.cfg['influxdb']['token'],
+                org=self.cfg['influxdb']['org']
+            )
+            self.influx_write_client = self.influxdb.write_api(
+                write_options=ASYNCHRONOUS)
 
         # save urls for bot
         self.cfg['urls'] = {
@@ -122,9 +164,14 @@ class FifaWeb(object):
 
         return {}    # retrun empty dict if something wrong
 
-    def SearchByIndex(self, index, page=0):
+    def SearchByIndex(self, index, page=0, maxb=None):
         try:
             params = self.Items[index]['params'].copy()
+
+            # overwrite maxb if defined for dump Dump function fix
+            if maxb:
+                params['maxb'] = maxb
+
             # randomize maxb and minb for cache miss hack
             for b in ['minb', 'maxb']:
                 if b in params:
@@ -168,11 +215,43 @@ class FifaWeb(object):
 
         return True
 
+    def SaveItem(self, item):
+        if self.influx_write_client:
+            self.influx_write_client.write(self.cfg['influxdb']['bucket'], self.cfg['influxdb']['org'],
+                                           {"measurement": "items", "tags": itemdata2tags(item['itemData']),
+                                            "fields": {"buynow":  item['buyNowPrice']},
+                                            "time": time_ns(), }
+                                           )
+
+    def DumpItemByIndex(self, index, maxb=None):
+        if not maxb:
+            maxb = self.Items[index]['params']['maxb']
+
+        page = 0
+        while True:
+            items = self.SearchByIndex(index, page=page, maxb=maxb)
+            self.info(items)
+            random_sleep(0.5, 1.5)
+            if not items:
+                page = 0
+                maxb = move_maxb(maxb)
+                self.info('next price {}'.format(maxb))
+                continue
+
+            for item in items:
+                self.SaveItem(item)
+                self.info(item)
+
+            if len(items) != self.cfg['market_page_size']:  # last not empty page
+                break
+
+        return maxb
+
     def BuyItemByIndex(self, index):
         for page in range(self.cfg['market_page_limit']):
-            items = self.SearchByIndex(index, page)
+            items = self.SearchByIndex(index, page=page)
             for item in items:
-                print(item)
+                self.SaveItem(item)
                 if self.ItemSuited(index, item):
                     self.BidItem(item['tradeId'], item['buyNowPrice'])
 
@@ -276,7 +355,7 @@ class FifaWeb(object):
         }]
 
         if first['itemData']['itemType'] == 'player':
-            item_tmpl[0]['desc'] = 'OptionalValue'
+            # item_tmpl[0]['desc'] = 'OptionalValue'
             item_tmpl[0]['rating'] = 'MandatoryValue'
             item_tmpl[0]['prices']['buy_limit'] = first['startingBid']
 
@@ -285,7 +364,8 @@ class FifaWeb(object):
 
 def main():
     parser = argparse.ArgumentParser(description='Fifa Config Parser')
-    parser.add_argument('-c', '--config', type=str, help='config yaml file', required=True)
+    parser.add_argument('-c', '--config', type=str,
+                        help='config yaml file', required=True)
     parser.add_argument('-i', '--items', type=str, help='items yaml file')
     parser.add_argument('--decode-url', type=str, default='',
                         help='decode search url copied from browser debug console')
@@ -293,6 +373,7 @@ def main():
                         help='how many times we will try to buy an item')
     parser.add_argument('--buy-count', type=int, default=5,
                         help='how many items we will buy')
+    parser.add_argument('--dump', dest='dump', action='store_true')
     parser.add_argument('--buy', dest='buy', action='store_true')
     parser.add_argument('--sell', dest='sell', action='store_true')
     parser.add_argument('-v', '--verbose', dest='debug', action='store_true')
@@ -308,6 +389,14 @@ def main():
 
     if args.debug:
         fifa.Log.setLevel(logging.DEBUG)
+
+    if args.dump:
+        maxb = 0  # set default value from item yaml
+        for i in range(args.tries):
+            fifa.info({"attempts": i})
+            # save maxb from preview search
+            maxb = fifa.DumpItemByIndex(0, maxb)
+            random_sleep(5, 15)
 
     if args.buy:
         for i in range(args.tries):

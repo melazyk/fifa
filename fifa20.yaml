@@ -8,8 +8,14 @@ params:
 market_page_size: 20
 market_page_limit: 3
 
+influxdb:
+  url: 'http://localhost:9999'
+  token: '<token>'
+  org: 'Home'
+  bucket: 'fifa'
+
 headers:
-  X-UT-SID: 7c76aa7a-8579-41fa-a139-4cce75826ed3  # session id
+  X-UT-SID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  # session id
   DNT: '1'
   Accept: '*/*'
   Referer: 'https://www.easports.com/fifa/ultimate-team/web-app/'
