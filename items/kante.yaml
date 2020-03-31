@@ -2,11 +2,11 @@
 - name: 'Ngolo Kante'
   params:
     maskedDefId: 215914
-    maxb: 140000
+    maxb: 170000
     type: player
   prices:
     buy_limit: 140000
-    buynow: 170000
+    buynow: 165000
     start: 165000
   rating: 89
   resourceId: 215914
