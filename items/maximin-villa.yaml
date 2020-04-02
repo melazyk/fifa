@@ -1,0 +1,23 @@
+---
+- name: 'Saint-Maximin'
+  params:
+    maskedDefId: 216388
+    maxb: 3000
+    type: player
+  prices:
+    buy_limit: 3600
+    buynow: 5000
+    start: 4000
+  rating: 79
+  resourceId: 216388
+- name: 'David Villa'
+  params:
+    maskedDefId: 113422
+    maxb: 3500
+    type: player
+  prices:
+    buy_limit: 3600
+    buynow: 4900
+    start: 4500
+  rating: 79
+  resourceId: 113422

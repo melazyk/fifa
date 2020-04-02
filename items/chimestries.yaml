@@ -1,0 +1,36 @@
+- name: Basic
+  params:
+    cat: playStyle
+    lev: gold
+    playStyle: 250
+    type: training
+    maxb: 3000
+  prices:
+    buynow: 4000
+    start: 3500
+  resourceId: 5003095
+- name: Hunter
+  params:
+    cat: playStyle
+    lev: gold
+    maxb: 8000
+    playStyle: 266
+    type: training
+  prices:
+    buynow: 10500
+    start: 9500
+  resourceId: 5003111
+- name: Shadow
+  params:
+    cat: playStyle
+    lev: gold
+    maxb: 9000
+    playStyle: 268
+    type: training
+  prices:
+    buynow: 11000
+    start: 12500
+  resourceId: 5003113
+  # Too Cheap: Sniper=600, Finisher=250, Deadeye=700, Marksman=300, Hawk=600, Artist=200, Architect=200
+  #            Powerhourse=200, Maestro=300, Engine=1000, Sentinel=300, Guardian=200, Gladiator=200,
+  #            Backbone=200, Anchor=1500, Catalyst=1500, Wall=200, Shield=200, Cat=200, Glove=250, GKBasic=200

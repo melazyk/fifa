@@ -6,8 +6,8 @@
     type: player
   prices:
     buy_limit: 3000
-    buynow: 5100
-    start: 3000
+    buynow: 5700
+    start: 5000
   rating: 79
   resourceId: 216388
 - name: 'Ngolo Kante'
@@ -21,24 +21,13 @@
     start: 165000
   rating: 89
   resourceId: 215914
-- name: 'Bastian Schweinsteiger'
-  params:
-    maskedDefId: 121944
-    maxb: 2000
-    type: player
-  prices:
-    buy_limit: 2000
-    buynow: 23000
-    start: 6000
-  rating: 76
-  resourceId: 121944
 - name: 'David Villa'
   params:
     maskedDefId: 113422
     maxb: 3500
     type: player
   prices:
-    buy_limit: 3500
+    buy_limit: 5000
     buynow: 7000
     start: 6500
   rating: 79
