@@ -89,6 +89,7 @@ class FifaWeb(object):
             self.influx_write_client = self.influxdb.write_api(
                 write_options=ASYNCHRONOUS)
 
+        self.buyed = 0
         # save urls for bot
         self.cfg['urls'] = {
             'market':             self.cfg['base_url'] + 'transfermarket',
@@ -209,6 +210,7 @@ class FifaWeb(object):
 
         if self.BuyCounter:
             self.BuyCounter -= 1
+            self.info("BuyCounter is {}".format(self.BuyCounter))
         if not self.BuyCounter:
             self.info("BuyCounter is 0. Exit.")
             sys.exit(1)
@@ -253,6 +255,7 @@ class FifaWeb(object):
                 self.SaveItem(item)
                 if self.ItemSuited(index, item):
                     self.BidItem(item['tradeId'], item['buyNowPrice'])
+                    self.buyed += 1
 
             if len(items) < self.cfg['market_page_size']:  # last page
                 break
@@ -308,17 +311,15 @@ class FifaWeb(object):
         return True
 
     def ItemCanBeSold(self, item):
-        s_item = self.GetItemByResourseId(item['resourceId'])
-        print(s_item)
         try:
             prices = self.GetItemByResourseId(item['resourceId'])['prices']
         except KeyError:
-            pass
+            return False
 
-        print(prices)
         # if prices exist and greather than 0
         if ('start' in prices and 'buynow' in prices
                 and int(prices['start']) > 0 and int(prices['buynow']) > 0):
+            self.info(item)
             return True
 
         return False
@@ -326,13 +327,14 @@ class FifaWeb(object):
     def SellPurchasedItems(self):
         for purchased_item in self.GetPurchasedItems():
             print(purchased_item)
-            random_sleep(5, 15)
+            random_sleep(5, 10)
             if self.ItemCanBeSold(purchased_item):
                 print("CanBeSold")
                 if self.MoveToTradePill(purchased_item):
                     random_sleep(0.4, 1)
                     self.Auction(purchased_item)
                     random_sleep(5, 10)
+        self.buyed = 0
 
     def DecodeSearchUrl(self, url):
         r = self.get(url)
@@ -392,7 +394,6 @@ def main():
     if args.dump:
         maxb = 0  # set default value from item yaml
         for i in range(args.tries):
-            fifa.info({"attempt": i})
             # save maxb from preview search
             maxb = fifa.DumpItemByIndex(0, maxb)
             fifa.info('next price {}'.format(maxb))
@@ -400,9 +401,10 @@ def main():
 
     if args.buy:
         for i in range(args.tries):
-            fifa.info({"attempts": i})
             fifa.BuyRandomItem()
-            random_sleep(5, 15)
+            random_sleep(3, 9)
+            if args.sell and fifa.buyed and not i % 20:
+                fifa.SellPurchasedItems()
 
     if args.sell:
         fifa.SellPurchasedItems()
