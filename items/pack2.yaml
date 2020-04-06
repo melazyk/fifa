@@ -5,7 +5,7 @@
     maxb: 3000
     type: player
   prices:
-    buy_limit: 3000
+    bid_limit: 3000
     buynow: 5700
     start: 5000
   rating: 79
@@ -16,7 +16,7 @@
     maxb: 140000
     type: player
   prices:
-    buy_limit: 140000
+    bid_limit: 140000
     buynow: 170000
     start: 165000
   rating: 89
@@ -27,7 +27,7 @@
     maxb: 3500
     type: player
   prices:
-    buy_limit: 5000
+    bid_limit: 5000
     buynow: 7000
     start: 6500
   rating: 79
@@ -38,7 +38,7 @@
     maxb: 1000
     type: player
   prices:
-    buy_limit: 1000
+    bid_limit: 1000
     buynow: 7000
     start: 5000
   rating: 71

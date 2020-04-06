@@ -5,9 +5,9 @@
     maxb: 3000
     type: player
   prices:
-    buy_limit: 4000
-    buynow: 5500
-    start: 5000
+    bid_limit: 3000
+    buynow: 4500
+    start: 4000
   rating: 79
   resourceId: 216388
 - name: 'David Villa'
@@ -16,7 +16,7 @@
     maxb: 3500
     type: player
   prices:
-    buy_limit: 4000
+    bid_limit: 4000
     buynow: 4900
     start: 4600
   rating: 79

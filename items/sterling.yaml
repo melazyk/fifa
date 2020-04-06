@@ -6,7 +6,7 @@
     maxb: 30000
     type: player
   prices:
-    buy_limit: 30000
+    bid_limit: 30000
     buynow: 39000
     start: 35000
   rating: 88
@@ -17,7 +17,7 @@
     maskedDefId: 228618
     maxb: 8000
   prices:
-    buy_limit: 8000
+    bid_limit: 8000
     buynow: 11000
     start: 10000
   rating: 80
@@ -32,7 +32,7 @@
     start: '0'
     type: player
   prices:
-    buy_limit: 1600
+    bid_limit: 1600
     buynow: 1700
     start: 1600
   rating: MandatoryValue

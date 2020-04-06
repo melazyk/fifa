@@ -67,8 +67,8 @@ class FifaWeb(object):
         with open(os.path.expanduser(config_file)) as f:
             self.cfg = yaml.safe_load(f)
 
-        self.Log = logging.getLogger("fifa_log")
-        self.Log.setLevel(logging.INFO)
+        self.logger = logging.getLogger("fifa_log")
+        self.logger.setLevel(logging.INFO)
         if 'logfile' in self.cfg:
             fh = logging.FileHandler(self.cfg['logfile'])
         else:
@@ -78,7 +78,7 @@ class FifaWeb(object):
             '{"time": "%(asctime)s", "name": "%(name)s", \
                     "level": "%(levelname)s", "message": %(message)s }'
         ))
-        self.Log.addHandler(fh)
+        self.logger.addHandler(fh)
 
         if 'influxdb' in self.cfg:
             self.influxdb = InfluxDBClient(
@@ -89,7 +89,7 @@ class FifaWeb(object):
             self.influx_write_client = self.influxdb.write_api(
                 write_options=ASYNCHRONOUS)
 
-        self.buyed = 0
+        self.purchased_count = 0
         # save urls for bot
         self.cfg['urls'] = {
             'market':             self.cfg['base_url'] + 'transfermarket',
@@ -125,15 +125,19 @@ class FifaWeb(object):
             }
         }
 
-        # call self.{{level}} function
-        getattr(self, level)(logdata)
+        self.log(logdata, level=level)
+
+    def exit(self):
+        sys.exit(1)
 
     def get(self, url, params={}):
         r = self.requests.get(url, params=params)
         self.LogRequest(r)
+        # 458 #verification require
+        # 401 #auth require
         if r.status_code != 200:
             self.LogRequest(r, level='info')
-            sys.exit(1)
+            self.exit()
         return r
 
     def put(self, url, json):
@@ -146,16 +150,17 @@ class FifaWeb(object):
         self.LogRequest(r)
         return r
 
-    def info(self, message):
-        self.Log.info(json.dumps(message))
+    def log(self, message, level='info'):
+        try:
+            func = getattr(self.logger, level)
+        except AttributeError:
+            func = getattr(self.logger, 'info')
 
-    def debug(self, message):
-        self.Log.debug(json.dumps(message))
+        return func(json.dumps(message))
 
     def search(self, params):
         payload = self.cfg['params'].copy()
         payload.update(params)
-        self.info(payload)
         r = self.get(self.cfg['urls']['market'], params=payload)
 
         try:
@@ -183,9 +188,10 @@ class FifaWeb(object):
             return {}
 
     def ItemSuited(self, index, item):
+        prices = self.GetPrices(item)  # extra loop by Items (
         if item['itemData']['itemType'] == 'player' and \
                 item['itemData']['rating'] >= self.Items[index]['rating'] and \
-                item['buyNowPrice'] <= self.Items[index]['prices']['buy_limit']:
+                item['buyNowPrice'] <= prices['bid_limit']:
             return True
         elif item['itemData']['itemType'] == 'training' and \
                 item['itemData']['cardsubtypeid'] in [220, 107, 108, 268, 266, 262]:
@@ -193,13 +199,7 @@ class FifaWeb(object):
 
         return False
 
-    def BidItem(self, tradeId, bid):
-        print("tradeId: {}, bid: {}".format(tradeId, bid))
-        self.info({
-            'tradeId': tradeId,
-            'bid': bid,
-        })
-
+    def Bid(self, tradeId, bid):
         r = self.put(
             self.cfg['urls']['bid'].format(tradeId),
             json={'bid': bid},
@@ -208,13 +208,10 @@ class FifaWeb(object):
         if r.status_code != 200:
             return False
 
-        if self.BuyCounter:
-            self.BuyCounter -= 1
-            self.info("BuyCounter is {}".format(self.BuyCounter))
-        if not self.BuyCounter:
-            self.info("BuyCounter is 0. Exit.")
-            sys.exit(1)
+        if self.bid_limit:
+            self.bid_limit -= 1
 
+        self.log({'bid_limit': self.bid_limit, })
         return True
 
     def SaveItem(self, item):
@@ -233,12 +230,12 @@ class FifaWeb(object):
             items = self.SearchByIndex(index, page=page, maxb=maxb)
             random_sleep(0.5, 1.5)
             if not items and page == 0:
-                maxb = move_maxb(maxb, 1.05, delta=-100)
+                maxb = move_maxb(maxb, 1.05, delta=100)
                 break
 
             for item in items:
                 self.SaveItem(item)
-                # self.info(item)
+                # self.log(item)
 
             if len(items) <= self.cfg['market_page_size']:  # last not empty page
                 break
@@ -254,8 +251,9 @@ class FifaWeb(object):
             for item in items:
                 self.SaveItem(item)
                 if self.ItemSuited(index, item):
-                    self.BidItem(item['tradeId'], item['buyNowPrice'])
-                    self.buyed += 1
+                    self.log(item)
+                    self.Bid(item['tradeId'], item['buyNowPrice'])
+                    self.purchased_count += 1
 
             if len(items) < self.cfg['market_page_size']:  # last page
                 break
@@ -272,10 +270,28 @@ class FifaWeb(object):
             return []
 
     def GetItemByResourseId(self, resourceId):
+        default_item = {}
         for item in self.Items:
             if item['resourceId'] == resourceId:
                 return item
-        return {}
+            elif item['resourceId'] == 0:
+                default_item = item
+
+        return default_item
+
+    def GetPrices(self, item):  # gets item and purchased_item as argument
+        try:
+            item_data = item['itemData']
+        except KeyError:
+            item_data = item
+
+        prices = self.GetItemByResourseId(item_data['resourceId'])['prices']
+
+        # set rare prices if defined
+        if item_data['rareflag'] and 'rare' in prices:
+            prices = prices['rare']
+
+        return prices
 
     def MoveToTradePill(self, item):
         r = self.put(self.cfg['urls']['item'],
@@ -285,15 +301,13 @@ class FifaWeb(object):
                            },
                      )
 
-        print(r.status_code, r.text)
         if r.status_code != 200:
             return False
 
         return True
 
     def Auction(self, item):
-        prices = self.GetItemByResourseId(item['resourceId'])['prices']
-        print(self.cfg['urls']['auction'])
+        prices = self.GetPrices(item)
         r = self.post(
             self.cfg['urls']['auction'],
             json={'itemData':
@@ -304,45 +318,42 @@ class FifaWeb(object):
                   },
         )
 
-        print(r.status_code, r.text)
         if r.status_code != 200:
             return False
 
+        self.log({
+            'item': item,
+            'purchase': prices['buynow'],
+            })
         return True
 
-    def ItemCanBeSold(self, item):
-        try:
-            prices = self.GetItemByResourseId(item['resourceId'])['prices']
-        except KeyError:
-            return False
+    def ItemCanBeSold(self, purchased_item):
+        prices = self.GetPrices(purchased_item)
 
         # if prices exist and greather than 0
         if ('start' in prices and 'buynow' in prices
                 and int(prices['start']) > 0 and int(prices['buynow']) > 0):
-            self.info(item)
             return True
 
         return False
 
     def SellPurchasedItems(self):
         for purchased_item in self.GetPurchasedItems():
-            print(purchased_item)
-            random_sleep(5, 10)
+            random_sleep(1, 2)
             if self.ItemCanBeSold(purchased_item):
-                print("CanBeSold")
                 if self.MoveToTradePill(purchased_item):
                     random_sleep(0.4, 1)
                     self.Auction(purchased_item)
                     random_sleep(5, 10)
-        self.buyed = 0
+        self.purchased_count = 0
 
     def DecodeSearchUrl(self, url):
         r = self.get(url)
         try:
             first = r.json()['auctionInfo'][0]
         except (KeyError, IndexError, ):
-            self.info('Try one more time, or increase maxb')
-            sys.exit(1)
+            self.log('Try one more time, or increase maxb')
+            self.exit()
 
         # print(json.dumps(first))
         item_tmpl = [{
@@ -358,21 +369,23 @@ class FifaWeb(object):
         if first['itemData']['itemType'] == 'player':
             # item_tmpl[0]['desc'] = 'OptionalValue'
             item_tmpl[0]['rating'] = 'MandatoryValue'
-            item_tmpl[0]['prices']['buy_limit'] = first['startingBid']
+            item_tmpl[0]['prices']['bid_limit'] = first['startingBid']
 
         print(yaml.dump(item_tmpl))
 
 
 def main():
     parser = argparse.ArgumentParser(description='Fifa Config Parser')
-    parser.add_argument('-c', '--config', type=str,
-                        help='config yaml file', required=True)
+    parser.add_argument('-c', '--config', type=str, default='fifa20.yaml',
+                        help='config yaml file')
     parser.add_argument('-i', '--items', type=str, help='items yaml file')
     parser.add_argument('--decode-url', type=str, default='',
                         help='decode search url copied from browser debug console')
+    parser.add_argument('--buy-now', type=int, default=0,
+                        help='Only price for all purchased itms')
     parser.add_argument('--tries', type=int, default=900,
                         help='how many times we will try to buy an item')
-    parser.add_argument('--buy-count', type=int, default=5,
+    parser.add_argument('--bid-limit', type=int, default=1,
                         help='how many items we will buy')
     parser.add_argument('--dump', dest='dump', action='store_true')
     parser.add_argument('--buy', dest='buy', action='store_true')
@@ -386,25 +399,27 @@ def main():
 
     fifa = FifaWeb(args.config)
     fifa.LoadItems(args.items)
-    fifa.BuyCounter = args.buy_count
+    fifa.bid_limit = args.bid_limit
 
     if args.debug:
-        fifa.Log.setLevel(logging.DEBUG)
+        fifa.logger.setLevel(logging.DEBUG)
 
     if args.dump:
         maxb = 0  # set default value from item yaml
         for i in range(args.tries):
             # save maxb from preview search
             maxb = fifa.DumpItemByIndex(0, maxb)
-            fifa.info('next price {}'.format(maxb))
+            fifa.log('next price {}'.format(maxb))
             random_sleep(5, 15)
 
     if args.buy:
         for i in range(args.tries):
             fifa.BuyRandomItem()
             random_sleep(3, 9)
-            if args.sell and fifa.buyed and not i % 20:
+            if args.sell and fifa.purchased_count and not i % 20:
                 fifa.SellPurchasedItems()
+            if fifa.bid_limit <= 0:
+                break
 
     if args.sell:
         fifa.SellPurchasedItems()

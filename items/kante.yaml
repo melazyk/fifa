@@ -5,7 +5,7 @@
     maxb: 170000
     type: player
   prices:
-    buy_limit: 140000
+    bid_limit: 140000
     buynow: 165000
     start: 165000
   rating: 89

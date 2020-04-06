@@ -5,7 +5,7 @@
     maxb: 2000
     type: player
   prices:
-    buy_limit: 2000
+    bid_limit: 2000
     buynow: 18000
     start: 10000
   rating: MandatoryValue
