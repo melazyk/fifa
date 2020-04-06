@@ -15,7 +15,7 @@ influxdb:
   bucket: 'fifa'
 
 headers:
-  X-UT-SID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  # session id
+  X-UT-SID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
   DNT: '1'
   Accept: '*/*'
   Referer: 'https://www.easports.com/fifa/ultimate-team/web-app/'

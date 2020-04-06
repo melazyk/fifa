@@ -8,7 +8,7 @@
 #    maxb: 200
 #  rating: 70
 #  prices:
-#    buy_limit: 200
+#    bid_limit: 200
 #    start: 150
 #    buynow: 200
 - name: "Guardian"
