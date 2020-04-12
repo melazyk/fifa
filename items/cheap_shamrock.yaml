@@ -1,0 +1,11 @@
+- name: CheapShamrock
+  params:
+    maxb: 1000
+    team: 306
+    type: player
+  prices:
+    bid_limit: 1000
+    buynow: 3500
+    start: 3400
+  rating: 40
+  resourceId: 0

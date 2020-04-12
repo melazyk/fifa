@@ -189,6 +189,12 @@ class FifaWeb(object):
 
     def ItemSuited(self, index, item):
         prices = self.GetPrices(item)  # extra loop by Items (
+
+        if 'rareonly' in self.Items[index] and \
+                self.Items[index]['rareonly'] and \
+                not item['itemData']['rareflag']:
+            return False
+
         if item['itemData']['itemType'] == 'player' and \
                 item['itemData']['rating'] >= self.Items[index]['rating'] and \
                 item['buyNowPrice'] <= prices['bid_limit']:
@@ -258,7 +264,7 @@ class FifaWeb(object):
             if len(items) < self.cfg['market_page_size']:  # last page
                 break
 
-            random_sleep(0.5, 1.5)
+            random_sleep(1, 4)
 
     def BuyRandomItem(self):
         self.BuyItemByIndex(randint(0, len(self.Items)-1))
@@ -289,7 +295,10 @@ class FifaWeb(object):
 
         # set rare prices if defined
         if item_data['rareflag'] and 'rare' in prices:
-            prices = prices['rare']
+            try:
+                prices = prices['rare']
+            except KeyError:
+                pass
 
         return prices
 
@@ -324,7 +333,7 @@ class FifaWeb(object):
         self.log({
             'item': item,
             'purchase': prices['buynow'],
-            })
+        })
         return True
 
     def ItemCanBeSold(self, purchased_item):
