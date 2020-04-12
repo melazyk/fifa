@@ -1,0 +1,11 @@
+- name: Klassen
+  params:
+    maskedDefId: 203483
+    maxb: 3000
+    type: player
+  prices:
+    bid_limit: 3000
+    buynow: 8500
+    start: 8000
+  rating: 80
+  resourceId: 203483

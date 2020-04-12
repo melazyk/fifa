@@ -1,0 +1,12 @@
+- name: Pepe
+  params:
+    maskedDefId: 120533
+    maxb: 8000
+    pos: CB
+    type: player
+  prices:
+    bid_limit: 8400
+    buynow: 10000
+    start: 9900
+  rating: 84
+  resourceId: 120533
