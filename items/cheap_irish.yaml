@@ -6,11 +6,11 @@
     type: player
   prices:
     bid_limit: 1000
-    buynow: 2500
-    start: 1300
+    buynow: 2300
+    start: 1800
     rare:
       bid_limit: 1500
-      buynow: 4500
-      start: 3000
+      buynow: 7000
+      start: 6000
   rating: 60 # 65 is minimum for silver
   resourceId: 0

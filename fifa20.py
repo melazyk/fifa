@@ -5,12 +5,16 @@ import requests
 import yaml
 import json
 from random import randint, uniform
-from time import sleep, time_ns
+from time import sleep, time_ns, time
 import argparse
 import logging
 from urllib import parse
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import ASYNCHRONOUS
+from aiohttp import web
+import asyncio
+import threading
+from uuid import UUID
 
 
 def blur_price(s):
@@ -62,11 +66,62 @@ def move_maxb(maxb, multiplier=1.01, delta=100):
     return new_maxb if abs(new_maxb - maxb) > abs(delta) else maxb + delta
 
 
+def is_valid_uuid(uuid_to_test, version=4):
+    """
+    Check if uuid_to_test is a valid UUID.
+
+    Parameters
+    ----------
+    uuid_to_test : str
+    version : {1, 2, 3, 4}
+
+    Returns
+    -------
+    `True` if uuid_to_test is a valid UUID, otherwise `False`.
+
+    Examples
+    --------
+    >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
+    True
+    >>> is_valid_uuid('c9bf9e58')
+    False
+    """
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except ValueError:
+        return False
+
+    return str(uuid_obj) == uuid_to_test
+
+
+class SessionException(Exception):
+    """Exception Session"""
+    pass
+
+
 class FifaWeb(object):
+
     def __init__(self, config_file):
+        # Load Config
+        self.loop = None
+        self.app = None
+        self.Not200_time = 0
+        self.FailRequestInterval = 30  # in seconds
         with open(os.path.expanduser(config_file)) as f:
             self.cfg = yaml.safe_load(f)
 
+        # define some constants
+        self.purchased_count = 0
+        self.SID_NAME = 'X-UT-SID'
+        self.cfg['urls'] = {
+            'market':             self.cfg['base_url'] + 'transfermarket',
+            'bid':                self.cfg['base_url'] + 'trade/{}/bid',
+            'purchased_items':    self.cfg['base_url'] + 'purchased/items',
+            'item':               self.cfg['base_url'] + 'item',
+            'auction':            self.cfg['base_url'] + 'auctionhouse',
+        }
+
+        # Logger Settings
         self.logger = logging.getLogger("fifa_log")
         self.logger.setLevel(logging.INFO)
         if 'logfile' in self.cfg:
@@ -80,6 +135,7 @@ class FifaWeb(object):
         ))
         self.logger.addHandler(fh)
 
+        # Influx Config
         if 'influxdb' in self.cfg:
             self.influxdb = InfluxDBClient(
                 url=self.cfg['influxdb']['url'],
@@ -89,25 +145,16 @@ class FifaWeb(object):
             self.influx_write_client = self.influxdb.write_api(
                 write_options=ASYNCHRONOUS)
 
-        self.purchased_count = 0
-        # save urls for bot
-        self.cfg['urls'] = {
-            'market':             self.cfg['base_url'] + 'transfermarket',
-            'bid':                self.cfg['base_url'] + 'trade/{}/bid',
-            'purchased_items':    self.cfg['base_url'] + 'purchased/items',
-            'item':               self.cfg['base_url'] + 'item',
-            'auction':            self.cfg['base_url'] + 'auctionhouse',
-        }
-
+        # Create requests session
         self.requests = requests.Session()
         self.requests.headers.update(self.cfg['headers'])
 
-    def LoadItems(self, filename):
+    def load_items(self, filename):
         self.Items = []
         with open(os.path.expanduser(filename)) as f:
             self.Items = yaml.safe_load(f)
 
-    def LogRequest(self, r, level='debug'):
+    def log_request(self, r, level='debug'):
         if level not in ['info', 'debug']:
             return
 
@@ -127,27 +174,69 @@ class FifaWeb(object):
 
         self.log(logdata, level=level)
 
+    def update_headers(self):
+        while not self.app or \
+                self.SID_NAME not in self.app['headers']:
+            self.log('wait first information from browser')
+            sleep(1)
+
+        while self.app['headers'][self.SID_NAME] == self.requests.headers[self.SID_NAME]:
+            self.log('wait new headers from plugin')
+            sleep(1)
+
+        for h in self.requests.headers:
+            self.log(self.app['headers'])
+            if h in self.app['headers']:
+                self.requests.headers[h] = self.app['headers'][h]
+
+    def validate_request(self):
+        logdata = {
+            'headers': dict(self.requests.headers),
+            'SID_NAME': self.SID_NAME,
+        }
+        self.log(logdata, level='debug')
+        try:
+            self.requests.headers[self.SID_NAME]
+        except (KeyError, AttributeError):
+            return False
+
+        if time() - self.Not200_time < self.FailRequestInterval:
+            return False
+
+        return is_valid_uuid(self.requests.headers[self.SID_NAME])
+
     def exit(self):
         sys.exit(1)
 
     def get(self, url, params={}):
+        if not self.validate_request():
+            raise SessionException('get error')
+
         r = self.requests.get(url, params=params)
-        self.LogRequest(r)
-        # 458 #verification require
-        # 401 #auth require
+        self.log_request(r)
+        # 401 - auth require
+        # 458 - verification require
+        # 512 - temporary blocked ( 1-12 hours )
         if r.status_code != 200:
-            self.LogRequest(r, level='info')
-            self.exit()
+            self.Not200_time = time()
+            self.log_request(r, level='info')
+            self.update_headers()
         return r
 
     def put(self, url, json):
+        if not self.validate_request():
+            raise SessionException('put error')
+
         r = self.requests.put(url, json=json)
-        self.LogRequest(r)
+        self.log_request(r)
         return r
 
     def post(self, url, json):
+        if not self.validate_request():
+            raise SessionException('post error')
+
         r = self.requests.post(url, json=json)
-        self.LogRequest(r)
+        self.log_request(r)
         return r
 
     def log(self, message, level='info'):
@@ -382,6 +471,32 @@ class FifaWeb(object):
 
         print(yaml.dump(item_tmpl))
 
+    def aiohttp_server(self):
+        def http_get(request):
+            self.app['headers'].update(dict(request.headers))
+            return web.Response(text='OK')
+
+        self.app = web.Application()
+        self.app['headers'] = {}
+        self.app.add_routes([web.get('/', http_get)])
+        self.runner = web.AppRunner(self.app)
+        return self.runner
+
+    def run_server(self, runner):
+        if 'web_port' not in self.cfg or not self.cfg['web_port']:
+            return
+
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(runner.setup())
+        site = web.TCPSite(runner, 'localhost', 8080)
+        self.loop.run_until_complete(site.start())
+        self.loop.run_forever()
+
+    def stop(self):
+        if self.loop:
+            self.loop.call_soon_threadsafe(self.loop.stop)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Fifa Config Parser')
@@ -392,11 +507,12 @@ def main():
                         help='decode search url copied from browser debug console')
     parser.add_argument('--buy-now', type=int, default=0,
                         help='Only price for all purchased itms')
-    parser.add_argument('--tries', type=int, default=900,
+    parser.add_argument('--tries', type=int, default=sys.maxsize,
                         help='how many times we will try to buy an item')
     parser.add_argument('--bid-limit', type=int, default=1,
                         help='how many items we will buy')
     parser.add_argument('--dump', dest='dump', action='store_true')
+    parser.add_argument('--web', dest='web', action='store_true')
     parser.add_argument('--buy', dest='buy', action='store_true')
     parser.add_argument('--sell', dest='sell', action='store_true')
     parser.add_argument('-v', '--verbose', dest='debug', action='store_true')
@@ -407,11 +523,18 @@ def main():
     args = parser.parse_args()
 
     fifa = FifaWeb(args.config)
-    fifa.LoadItems(args.items)
+    fifa.load_items(args.items)
     fifa.bid_limit = args.bid_limit
 
     if args.debug:
         fifa.logger.setLevel(logging.DEBUG)
+
+    if args.web:
+        t = threading.Thread(target=fifa.run_server, args=(fifa.aiohttp_server(),))
+        t.start()
+
+        # wait auth update to prevent auth fail ban
+        fifa.update_headers()
 
     if args.dump:
         maxb = 0  # set default value from item yaml
@@ -435,6 +558,8 @@ def main():
 
     if args.decode_url:
         fifa.DecodeSearchUrl(args.decode_url)
+
+    fifa.stop()
 
 
 if __name__ == '__main__':
