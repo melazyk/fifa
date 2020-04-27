@@ -1,28 +1,31 @@
 ---
 base_url: 'https://utas.external.s2.fut.ea.com/ut/game/fifa20/'
+web_port: 8080
 # logfile: fifa.log
 params:
   start: 0
   num: 21  # must be market_page_size+1
 
 market_page_size: 20
+#market_page_limit: 100
 market_page_limit: 3
 
 influxdb:
   url: 'http://localhost:9999'
-  token: '<token>'
+  token: 'a0ZniAJJijQ5tD82tl-XBLfgvjz8C4U05oi78KKyZE-xikKqjivAeiys7S2mfOEPJbWzJHvqyWAcnMc-Fne6Jw=='
   org: 'Home'
   bucket: 'fifa'
 
 headers:
-  X-UT-SID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-  DNT: '1'
   Accept: '*/*'
-  Referer: 'https://www.easports.com/fifa/ultimate-team/web-app/'
-  User-Agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
-  Origin: 'https://www.easports.com'
-  Sec-Fetch-Dest: 'empty'
-  Sec-Fetch-Site: 'cross-site'
-  Sec-Fetch-Mode: 'cors'
   Accept-Encoding: 'gzip, deflate, br'
   Accept-Language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6,fr;q=0.5'
+  DNT: '1'
+  Origin: 'https://www.easports.com'
+  Referer: 'https://www.easports.com/fifa/ultimate-team/web-app/'
+  Sec-Fetch-Dest: 'empty'
+  Sec-Fetch-Mode: 'cors'
+  Sec-Fetch-Site: 'cross-site'
+  User-Agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36'
+  X-UT-SID: 'not valid SID'
+
