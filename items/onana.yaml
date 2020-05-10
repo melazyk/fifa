@@ -1,0 +1,11 @@
+- name: Onana
+  params:
+    maskedDefId: 226753
+    maxb: 6000
+    type: player
+    #  prices:
+    #    bid_limit: 5800
+    #    buynow: 5900
+    #    start: 5800
+    #rating: 82
+  resourceId: 0
