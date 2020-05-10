@@ -1,0 +1,11 @@
+- name: Pique
+  params:
+    maskedDefId: 152729
+    maxb: 40000
+    type: player
+  prices:
+    bid_limit: 40000
+    buynow: 59000
+    start: 50000
+  rating: 88
+  resourceId: 152729

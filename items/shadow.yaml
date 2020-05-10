@@ -1,0 +1,11 @@
+- name: Shadow
+  params:
+    cat: playStyle
+    lev: gold
+    maxb: 18000
+    playStyle: 268
+    type: training
+  prices:
+    buynow: 19000
+    start: 17500
+  resourceId: 5003113

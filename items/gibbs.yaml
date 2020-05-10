@@ -1,0 +1,13 @@
+- name: Gibbs
+  params:
+    lev: gold
+    maskedDefId: 186115
+    maxb: 2000
+    type: player
+    zone: defense
+  prices:
+    bid_limit: 400
+    buynow: 2000
+    start: 1500
+  rating: 75
+  resourceId: 186115

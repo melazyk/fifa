@@ -1,16 +1,16 @@
 - name: AllCheapSilverIrish
   params:
     lev: silver
-    maxb: 1000
+    maxb: 1200
     nat: 25
     type: player
   prices:
-    bid_limit: 1000
-    buynow: 2300
-    start: 1800
+    bid_limit: 700
+    buynow: 1300
+    start: 1000
     rare:
-      bid_limit: 1500
-      buynow: 7000
-      start: 6000
+      bid_limit: 1200
+      buynow: 5300
+      start: 4000
   rating: 60 # 65 is minimum for silver
   resourceId: 0

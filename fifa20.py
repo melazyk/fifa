@@ -18,7 +18,9 @@ from uuid import UUID
 
 
 def blur_price(s):
-    return int(s)+randint(-5, 5)*20
+    min_price = 200
+    value = int(s)+randint(-5, 5)*20
+    return value if value > min_price else value
 
 
 def random_sleep(min_duration, max_duration):
@@ -95,7 +97,7 @@ def is_valid_uuid(uuid_to_test, version=4):
 
 
 class SessionException(Exception):
-    """Exception Session"""
+    """ Exception Session """
     pass
 
 
@@ -105,14 +107,16 @@ class FifaWeb(object):
         # Load Config
         self.loop = None
         self.app = None
-        self.Not200_time = 0
+        self.EmptyCount = 0
         self.FailRequestInterval = 30  # in seconds
+        self.credits = 0
         with open(os.path.expanduser(config_file)) as f:
             self.cfg = yaml.safe_load(f)
 
         # define some constants
         self.purchased_count = 0
         self.SID_NAME = 'X-UT-SID'
+        self.invalid_sid = ''
         self.cfg['urls'] = {
             'market':             self.cfg['base_url'] + 'transfermarket',
             'bid':                self.cfg['base_url'] + 'trade/{}/bid',
@@ -149,6 +153,28 @@ class FifaWeb(object):
         self.requests = requests.Session()
         self.requests.headers.update(self.cfg['headers'])
 
+        # Validate request
+        self.AuthError = self.valid_request()
+
+    def __getattribute__(self, attr):
+        """ Log method name in debug mode """
+        method = object.__getattribute__(self, attr)
+        # if not method:
+        #     raise Exception("Method %s not implemented" % attr)
+        if not callable(method):
+            return method
+
+        if attr != 'log':
+            self.log('method {} called'.format(attr), level='debug')
+
+        if attr in ('get', 'put', 'post'):
+            if self.AuthError:
+                self.update_headers()
+            elif not self.valid_request():
+                raise SessionException('method {} error'.format(attr))
+
+        return method
+
     def load_items(self, filename):
         self.Items = []
         with open(os.path.expanduser(filename)) as f:
@@ -174,69 +200,76 @@ class FifaWeb(object):
 
         self.log(logdata, level=level)
 
-    def update_headers(self):
-        while not self.app or \
-                self.SID_NAME not in self.app['headers']:
-            self.log('wait first information from browser')
-            sleep(1)
-
-        while self.app['headers'][self.SID_NAME] == self.requests.headers[self.SID_NAME]:
-            self.log('wait new headers from plugin')
-            sleep(1)
-
+    def get_headers_from_app(self):
         for h in self.requests.headers:
-            self.log(self.app['headers'])
+            self.log(self.app['headers'], level='debug')
             if h in self.app['headers']:
                 self.requests.headers[h] = self.app['headers'][h]
 
-    def validate_request(self):
+    def update_headers(self):
+        while not self.app or \
+                self.SID_NAME not in self.app['headers'] or \
+                self.app['headers'][self.SID_NAME] == self.invalid_sid:
+
+            try:
+                self.log({
+                    'text': 'wait new headers from plugin',
+                    'old_sid': self.requests.headers[self.SID_NAME],
+                    'new_sid': self.app['headers'][self.SID_NAME],
+                })
+            except (KeyError, AttributeError):
+                self.log({
+                    'text': 'wait first headers from plugin',
+                })
+            sleep(1)
+
+        self.get_headers_from_app()
+
+    def valid_request(self):
         logdata = {
             'headers': dict(self.requests.headers),
+            'now': time(),
+            'FailRequestInterval': self.FailRequestInterval,
             'SID_NAME': self.SID_NAME,
         }
+
         self.log(logdata, level='debug')
         try:
             self.requests.headers[self.SID_NAME]
         except (KeyError, AttributeError):
             return False
 
-        if time() - self.Not200_time < self.FailRequestInterval:
-            return False
-
         return is_valid_uuid(self.requests.headers[self.SID_NAME])
 
-    def exit(self):
-        sys.exit(1)
-
-    def get(self, url, params={}):
-        if not self.validate_request():
-            raise SessionException('get error')
-
-        r = self.requests.get(url, params=params)
-        self.log_request(r)
+    def response_handler(self, r):
+        # 200 - OK
         # 401 - auth require
         # 458 - verification require
-        # 512 - temporary blocked ( 1-12 hours )
-        if r.status_code != 200:
-            self.Not200_time = time()
+        # 512 - temporary block ( 1-12 hours )
+        if r.status_code in [401, 498, 512]:
+            self.AuthError = True
+            # let's save invalid SID
+            self.invalid_sid = self.requests.headers[self.SID_NAME]
+
+        if r.status_code in [200, ]:
+            self.AuthError = False
+            self.log_request(r)
+        else:
             self.log_request(r, level='info')
-            self.update_headers()
+
+    def get(self, url, params={}):
+        r = self.requests.get(url, params=params)
+        self.response_handler(r)
         return r
 
     def put(self, url, json):
-        if not self.validate_request():
-            raise SessionException('put error')
-
         r = self.requests.put(url, json=json)
-        self.log_request(r)
+        self.response_handler(r)
         return r
 
     def post(self, url, json):
-        if not self.validate_request():
-            raise SessionException('post error')
-
         r = self.requests.post(url, json=json)
-        self.log_request(r)
+        self.response_handler(r)
         return r
 
     def log(self, message, level='info'):
@@ -254,7 +287,7 @@ class FifaWeb(object):
 
         try:
             return r.json()['auctionInfo']
-        except KeyError:
+        except (KeyError, json.decoder.JSONDecodeError):
             pass
 
         return {}    # retrun empty dict if something wrong
@@ -294,11 +327,20 @@ class FifaWeb(object):
 
         return False
 
+    def set_credits(self, credits):
+        """ dumb function for budget calculatein in future """
+        self.credits = int(credits)
+
     def Bid(self, tradeId, bid):
         r = self.put(
             self.cfg['urls']['bid'].format(tradeId),
             json={'bid': bid},
         )
+
+        try:
+            self.set_credits(r.json()['credits'])
+        except (KeyError, json.decoder.JSONDecodeError):
+            pass
 
         if r.status_code != 200:
             return False
@@ -306,7 +348,7 @@ class FifaWeb(object):
         if self.bid_limit:
             self.bid_limit -= 1
 
-        self.log({'bid_limit': self.bid_limit, })
+        self.log({'bid_limit': self.bid_limit, 'credits': self.credits})
         return True
 
     def SaveItem(self, item):
@@ -523,17 +565,18 @@ def main():
     args = parser.parse_args()
 
     fifa = FifaWeb(args.config)
-    fifa.load_items(args.items)
+    if args.items:
+        fifa.load_items(args.items)
     fifa.bid_limit = args.bid_limit
 
     if args.debug:
         fifa.logger.setLevel(logging.DEBUG)
 
     if args.web:
-        t = threading.Thread(target=fifa.run_server, args=(fifa.aiohttp_server(),))
+        t = threading.Thread(target=fifa.run_server,
+                             args=(fifa.aiohttp_server(),))
         t.start()
 
-        # wait auth update to prevent auth fail ban
         fifa.update_headers()
 
     if args.dump:
@@ -563,4 +606,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except SessionException:
+        os.system('kill %d' % os.getpid())

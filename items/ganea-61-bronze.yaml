@@ -1,0 +1,12 @@
+- name: Ganea
+  params:
+    maskedDefId: 248119
+    maxb: 2000
+    pos: ST
+    type: player
+  prices:
+    bid_limit: 2000
+    buynow: 3000
+    start: 1800
+  rating: 61
+  resourceId: 248119

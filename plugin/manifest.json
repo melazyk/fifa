@@ -2,20 +2,23 @@
   "name": "Headers Sender",
   "version": "1.0",
   "description": "Send headers form tab to anohter url",
+  "browser_action": {
+      "default_icon": "images/red.png"
+  },
   "permissions": [
       "webRequestBlocking",
       "webRequest",
       "storage",
-      "http://127.0.0.1:8080/*",
-      "https://pkg.yourhero.ru/*",
-      "https://developer.chrome.com/*",
-      "https://utas.external.s2.fut.ea.com/*",
-      "https://utas.external.s3.fut.ea.com/*",
-      "https://www.easports.com/fifa/ultimate-team/web-app/*"
+      "http://*/*",
+      "https://*/*"
   ],
   "background": {
      "scripts": ["background.js"],
      "persistent": true
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
   },
   "manifest_version": 2
 }
