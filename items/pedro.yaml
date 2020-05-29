@@ -1,0 +1,11 @@
+- name: Pedro
+  params:
+    maskedDefId: 189505
+    maxb: 2200
+    type: player
+  prices:
+    bid_limit: 1000
+    buynow: 2200
+    start: 700
+  rating: 82
+  resourceId: 189505

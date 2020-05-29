@@ -1,0 +1,12 @@
+- name: ESP UCL
+  params:
+    leag: 53
+    maxb: 4000
+    rare: SP
+    type: player
+  prices:
+    bid_limit: 4000
+    buynow: 7000
+    start: 6000
+  resourceId: 0
+

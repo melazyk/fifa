@@ -17,10 +17,9 @@ import threading
 from uuid import UUID
 
 
-def blur_price(s):
-    min_price = 200
-    value = int(s)+randint(-5, 5)*20
-    return value if value > min_price else value
+def blur_price(s, r_min=-3, r_max=3, delta=50, min_price=200):
+    value = int(s)+randint(r_min, r_max)*delta
+    return value if value > min_price else min_price
 
 
 def random_sleep(min_duration, max_duration):
@@ -96,6 +95,24 @@ def is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
+def auction_info_items(r):
+    try:
+        return r.json()['auctionInfo']
+    except (KeyError, json.decoder.JSONDecodeError):
+        pass
+
+    return []
+
+
+def pure_item(item):
+    try:
+        return item['itemData']
+    except KeyError:
+        pass
+
+    return item
+
+
 class SessionException(Exception):
     """ Exception Session """
     pass
@@ -110,6 +127,10 @@ class FifaWeb(object):
         self.EmptyCount = 0
         self.FailRequestInterval = 30  # in seconds
         self.credits = 0
+        self.futbin = False
+        self.futcards = False
+        self.bid_limit = 1
+        self.prices_cache = {}
         with open(os.path.expanduser(config_file)) as f:
             self.cfg = yaml.safe_load(f)
 
@@ -117,12 +138,25 @@ class FifaWeb(object):
         self.purchased_count = 0
         self.SID_NAME = 'X-UT-SID'
         self.invalid_sid = ''
+        self.cfg['club_page_size'] = 91
+        self.club_params = {
+            'sort': 'desc',
+            'sortBy': 'value',
+            'type': 'player',
+            'count': self.cfg['club_page_size'],
+            # 'start': 91,
+        }
+        # https://utas.external.s2.fut.ea.com/ut/game/fifa20/user/creditshttps://utas.external.s2.fut.ea.com/ut/game/fifa20/user/credits
+        # https://utas.external.s2.fut.ea.com/ut/game/fifa20/club?sort=desc&sortBy=value&type=player&start=91&count=91
         self.cfg['urls'] = {
             'market':             self.cfg['base_url'] + 'transfermarket',
             'bid':                self.cfg['base_url'] + 'trade/{}/bid',
             'purchased_items':    self.cfg['base_url'] + 'purchased/items',
             'item':               self.cfg['base_url'] + 'item',
             'auction':            self.cfg['base_url'] + 'auctionhouse',
+            'credits':            self.cfg['base_url'] + 'user/credits',
+            'club':               self.cfg['base_url'] + 'club',
+            'tradepile':          self.cfg['base_url'] + 'tradepile',
         }
 
         # Logger Settings
@@ -179,6 +213,14 @@ class FifaWeb(object):
         self.Items = []
         with open(os.path.expanduser(filename)) as f:
             self.Items = yaml.safe_load(f)
+
+        # Define Default Arrays
+        for item in self.Items:
+            # any excludePositions
+            item['excludePositions'] = item['excludePositions'] if 'excludePositions' in item else []
+            item['rating'] = item['rating'] if 'rating' in item else 0  # any rating
+            # any resourceId
+            item['resourceId'] = item['resourceId'] if 'resourceId' in item else 0
 
     def log_request(self, r, level='debug'):
         if level not in ['info', 'debug']:
@@ -242,20 +284,32 @@ class FifaWeb(object):
         return is_valid_uuid(self.requests.headers[self.SID_NAME])
 
     def response_handler(self, r):
+        # ConnectionResetError
+        # https://github.com/futapi/fut/blob/master/fut/exceptions.py
         # 200 - OK
         # 401 - auth require
-        # 458 - verification require
+        # 403 - forbidden
+        # 409 - conflict
         # 512 - temporary block ( 1-12 hours )
-        if r.status_code in [401, 498, 512]:
+        # 426 - upgrade require ( I think it isn't a real upgrade cononection )
+        # 458 - verification require
+        # 459 - capthca triggered
+        # 461 - permission denied ( You are not allowed to bid on this trade )
+        # 478 - NO_TRADE_EXISTS
+        # 482 - invalide cookie
+        # 494 - new account transfer market locked
+        if r.status_code in [401, 403, 458, 426, 459]:
+            self.log_request(r, level='info')
             self.AuthError = True
             # let's save invalid SID
             self.invalid_sid = self.requests.headers[self.SID_NAME]
 
-        if r.status_code in [200, ]:
+        elif r.status_code in [200, 461, 478]:
             self.AuthError = False
             self.log_request(r)
         else:
             self.log_request(r, level='info')
+            raise SessionException('UT API Error')
 
     def get(self, url, params={}):
         r = self.requests.get(url, params=params)
@@ -284,13 +338,11 @@ class FifaWeb(object):
         payload = self.cfg['params'].copy()
         payload.update(params)
         r = self.get(self.cfg['urls']['market'], params=payload)
+        return auction_info_items(r)
 
-        try:
-            return r.json()['auctionInfo']
-        except (KeyError, json.decoder.JSONDecodeError):
-            pass
-
-        return {}    # retrun empty dict if something wrong
+    def tradepile(self):
+        r = self.get(self.cfg['urls']['tradepile'])
+        return auction_info_items(r)
 
     def SearchByIndex(self, index, page=0, maxb=None):
         try:
@@ -304,25 +356,62 @@ class FifaWeb(object):
             for b in ['minb', 'maxb']:
                 if b in params:
                     params[b] = blur_price(params[b])
+
             params['start'] = self.cfg['market_page_size']*page
             return self.search(params)
         except (IndexError, KeyError):
             return {}
 
-    def ItemSuited(self, index, item):
-        prices = self.GetPrices(item)  # extra loop by Items (
+    def club(self, params={'start': 0, }):
+        payload = self.club_params.copy()
+        payload.update(params)
+        r = self.get(self.cfg['urls']['club'], params=payload)
 
+        try:
+            return r.json()['itemData']
+        except (KeyError, json.decoder.JSONDecodeError):
+            pass
+
+        return []  # retrun empty dict if something wrong
+
+    def GetClubPlayers(self):
+        players = []
+        page = 0
+
+        while True:
+            p = self.club(params={'start': page*self.cfg['club_page_size']})
+            players += p
+            page += 1
+
+            if len(p) < self.cfg['club_page_size']:
+                return players
+
+        return players
+
+    def ItemSuited(self, index, item):
         if 'rareonly' in self.Items[index] and \
                 self.Items[index]['rareonly'] and \
                 not item['itemData']['rareflag']:
             return False
 
-        if item['itemData']['itemType'] == 'player' and \
-                item['itemData']['rating'] >= self.Items[index]['rating'] and \
-                item['buyNowPrice'] <= prices['bid_limit']:
-            return True
-        elif item['itemData']['itemType'] == 'training' and \
-                item['itemData']['cardsubtypeid'] in [220, 107, 108, 268, 266, 262]:
+        if item['itemData']['itemType'] == 'player':
+            if item['itemData']['rating'] < self.Items[index]['rating']:
+                return False
+
+            if item['itemData']['preferredPosition'] in self.Items[index]['excludePositions']:
+                return False
+
+            if 'profit' in self.Items[index]:
+                profit = self.GetExternalPrice(item['itemData']['resourceId'])*0.95 - item['buyNowPrice']
+                self.log({'potential_profit': profit, 'credits': self.credits})
+                if self.Items[index]['profit'] <= profit:
+                    return True
+                else:
+                    return False
+            elif item['buyNowPrice'] <= self.Items[index]['params']['maxb']:
+                return True
+
+        if item['itemData']['itemType'] == 'training' and item['itemData']['cardsubtypeid'] in [220, 107, 108, 268, 266, 262]:
             return True
 
         return False
@@ -391,6 +480,10 @@ class FifaWeb(object):
                     self.log(item)
                     self.Bid(item['tradeId'], item['buyNowPrice'])
                     self.purchased_count += 1
+                    # sleep over 1s
+                    random_sleep(1.5, 4)
+                if self.bid_limit <= 0:
+                    return
 
             if len(items) < self.cfg['market_page_size']:  # last page
                 break
@@ -399,12 +492,6 @@ class FifaWeb(object):
 
     def BuyRandomItem(self):
         self.BuyItemByIndex(randint(0, len(self.Items)-1))
-
-    def GetPurchasedItems(self):
-        try:
-            return self.get(self.cfg['urls']['purchased_items']).json()['itemData']
-        except KeyError:
-            return []
 
     def GetItemByResourseId(self, resourceId):
         default_item = {}
@@ -416,22 +503,61 @@ class FifaWeb(object):
 
         return default_item
 
-    def GetPrices(self, item):  # gets item and purchased_item as argument
+    def GetFutbinPrice(self, resourceId, platform='ps', price_type='LCPrice2'):
+        # gets item and purchased_item Das argument
+        # platforms: ps, pc, xbox
+        #  prcie_types
+        # "LCPrice": "6,500",
+        # "LCPrice2": "6,600",
+        # "LCPrice3": "6,700",
+        # "LCPrice4": "7,800",
+        # "LCPrice5": 0,
+        #  "updated": "1 hour ago",
+        # "MinPrice": "300",
+        # "MaxPrice": "10,000",
+        # "PRP": "63"
+        if resourceId in self.prices_cache:
+            return self.prices_cache[resourceId]
+
         try:
-            item_data = item['itemData']
-        except KeyError:
-            item_data = item
+            r = requests.get(
+                'https://www.futbin.com/20/playerPrices?player={}'.format(resourceId))
+            price = int(r.json()[str(resourceId)]['prices']
+                        [platform][price_type].replace(',', ''))
+            self.prices_cache[resourceId] = price
+        except (KeyError, TypeError, json.decoder.JSONDecodeError):
+            return 0
 
-        prices = self.GetItemByResourseId(item_data['resourceId'])['prices']
+        return price
 
-        # set rare prices if defined
-        if item_data['rareflag'] and 'rare' in prices:
-            try:
-                prices = prices['rare']
-            except KeyError:
-                pass
+    def GetFutcardsPrice(self, resourceId, platform='ps'):
+        if resourceId in self.prices_cache:
+            return self.prices_cache[resourceId]
 
-        return prices
+        try:
+            r = requests.get(
+                    'https://futcards.info/api/cards/price/YuvN42LUeVvJ7npYELPKE8l6JXgbrZJ7/{}'.format(resourceId))
+            price = int(r.json()[str(resourceId)]['prices'][platform]['price'])
+            self.prices_cache[resourceId] = price
+        except (KeyError, TypeError, json.decoder.JSONDecodeError):
+            return 0
+
+        return price
+
+    def GetExternalPrice(self, resourceId):
+        if self.futbin:
+            return self.GetFutbinPrice(resourceId)
+        elif self.futcards:
+            return self.GetFutcardsPrice(resourceId)
+
+    def GetPrice(self, item_data):
+        price = 0
+        if self.futbin or self.futcards:
+            price = self.GetExternalPrice(item_data['resourceId'])
+        else:
+            price = self.GetItemByResourseId(item_data['resourceId'])['price']
+
+        return price
 
     def MoveToTradePill(self, item):
         r = self.put(self.cfg['urls']['item'],
@@ -447,14 +573,27 @@ class FifaWeb(object):
         return True
 
     def Auction(self, item):
-        prices = self.GetPrices(item)
+        item_data = pure_item(item)
+        if not self.ItemCanBeSold(item_data):
+            return False
+
+        price = self.GetPrice(item_data)
+        start = blur_price(price, r_min=-4, r_max=-2, delta=100)
+        buynow = price
+
+        if start < item_data['marketDataMinPrice']:
+            start = item_data['marketDataMinPrice']
+
+        if buynow > item_data['marketDataMaxPrice']:
+            buynow = item_data['marketDataMaxPrice']
+
         r = self.post(
             self.cfg['urls']['auction'],
             json={'itemData':
-                  {'id': item['id'], },
-                  'startingBid': prices['start'],
+                  {'id': item_data['id'], },
+                  'startingBid': start,
                   'duration': 3600,
-                  'buyNowPrice': prices['buynow'],
+                  'buyNowPrice': buynow,
                   },
         )
 
@@ -462,30 +601,35 @@ class FifaWeb(object):
             return False
 
         self.log({
-            'item': item,
-            'purchase': prices['buynow'],
+            'item': item_data,
+            'purchase': buynow,
         })
         return True
 
-    def ItemCanBeSold(self, purchased_item):
-        prices = self.GetPrices(purchased_item)
-
-        # if prices exist and greather than 0
-        if ('start' in prices and 'buynow' in prices
-                and int(prices['start']) > 0 and int(prices['buynow']) > 0):
+    def ItemCanBeSold(self, item_data):
+        if self.GetPrice(item_data) > 0:
             return True
-
         return False
 
+    def GetPurchasedItems(self):
+        try:
+            return self.get(self.cfg['urls']['purchased_items']).json()['itemData']
+        except KeyError:
+            return []
+
     def SellPurchasedItems(self):
-        for purchased_item in self.GetPurchasedItems():
+        for item_data in self.GetPurchasedItems():
             random_sleep(1, 2)
-            if self.ItemCanBeSold(purchased_item):
-                if self.MoveToTradePill(purchased_item):
-                    random_sleep(0.4, 1)
-                    self.Auction(purchased_item)
-                    random_sleep(5, 10)
+            if self.MoveToTradePill(item_data):
+                random_sleep(0.4, 1)
+                self.Auction(item_data)
+                random_sleep(5, 10)
         self.purchased_count = 0
+
+    def SellFromTradePile(self):
+        for item in self.tradepile():
+            self.Auction(item)
+            random_sleep(5, 10)
 
     def DecodeSearchUrl(self, url):
         r = self.get(url)
@@ -500,16 +644,11 @@ class FifaWeb(object):
             'name': 'OptionalValue',
             'resourceId': first['itemData']['resourceId'],
             'params': dict(parse.parse_qsl(parse.urlsplit(r.request.url).query)),
-            'prices': {
-                'start': first['startingBid'],
-                'buynow': first['buyNowPrice'],
-            },
+            'price': first['buyNowPrice'],
         }]
 
         if first['itemData']['itemType'] == 'player':
-            # item_tmpl[0]['desc'] = 'OptionalValue'
-            item_tmpl[0]['rating'] = 'MandatoryValue'
-            item_tmpl[0]['prices']['bid_limit'] = first['startingBid']
+            item_tmpl[0]['rating'] = 'OptionalValue'
 
         print(yaml.dump(item_tmpl))
 
@@ -555,6 +694,8 @@ def main():
                         help='how many items we will buy')
     parser.add_argument('--dump', dest='dump', action='store_true')
     parser.add_argument('--web', dest='web', action='store_true')
+    parser.add_argument('--futbin', dest='futbin', action='store_true')
+    parser.add_argument('--futcards', dest='futcards', action='store_true')
     parser.add_argument('--buy', dest='buy', action='store_true')
     parser.add_argument('--sell', dest='sell', action='store_true')
     parser.add_argument('-v', '--verbose', dest='debug', action='store_true')
@@ -571,6 +712,11 @@ def main():
 
     if args.debug:
         fifa.logger.setLevel(logging.DEBUG)
+
+    if args.futbin:
+        fifa.futbin = args.futbin
+    if args.futcards:
+        fifa.futcards = args.futcards
 
     if args.web:
         t = threading.Thread(target=fifa.run_server,
@@ -597,7 +743,8 @@ def main():
                 break
 
     if args.sell:
-        fifa.SellPurchasedItems()
+        # fifa.SellPurchasedItems()
+        fifa.SellFromTradePile()
 
     if args.decode_url:
         fifa.DecodeSearchUrl(args.decode_url)

@@ -1,0 +1,11 @@
+- name: Dybala
+  params:
+    maskedDefId: 211110
+    maxb: 30000
+    type: player
+  prices:
+    bid_limit: 30000
+    buynow: 40000
+    start: 39000
+  rating: 88
+  resourceId: 0

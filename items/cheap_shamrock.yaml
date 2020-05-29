@@ -5,7 +5,7 @@
     type: player
   prices:
     bid_limit: 600
-    buynow: 2400
-    start: 2000
+    buynow: 1800
+    start: 1600
   rating: 40
   resourceId: 0

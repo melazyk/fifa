@@ -1,0 +1,11 @@
+- name: Ziyech
+  params:
+    maskedDefId: 208670
+    maxb: 9000
+    type: player
+  prices:
+    bid_limit: 8900
+    buynow: 9000
+    start: 8900
+  rating: 85
+  resourceId: 208670

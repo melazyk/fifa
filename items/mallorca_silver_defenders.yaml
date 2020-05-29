@@ -1,0 +1,12 @@
+- name: Mallorca Silver defs
+  params:
+    leag: 53
+    lev: silver
+    maxb: 9000
+    team: 453
+    type: player
+    zone: defense
+  prices:
+    bid_limit: 2000
+    buynow: 9500
+    start: 150
