@@ -303,8 +303,9 @@ class FifaWeb(object):
             self.AuthError = True
             # let's save invalid SID
             self.invalid_sid = self.requests.headers[self.SID_NAME]
-
-        elif r.status_code in [200, 461, 478]:
+        elif r.status_code in [409, ]:
+            self.log_request(r, level='info')
+        elif r.status_code in [200, 461, 478, ]:
             self.AuthError = False
             self.log_request(r)
         else:
@@ -617,19 +618,17 @@ class FifaWeb(object):
         except KeyError:
             return []
 
-    def SellPurchasedItems(self):
+    def MovePurchasedItems(self):
         for item_data in self.GetPurchasedItems():
-            random_sleep(1, 2)
-            if self.MoveToTradePill(item_data):
-                random_sleep(0.4, 1)
-                self.Auction(item_data)
-                random_sleep(5, 10)
+            random_sleep(3, 8)
+            self.MoveToTradePill(item_data)
+
         self.purchased_count = 0
 
     def SellFromTradePile(self):
         for item in self.tradepile():
             self.Auction(item)
-            random_sleep(5, 10)
+            random_sleep(3, 8)
 
     def DecodeSearchUrl(self, url):
         r = self.get(url)
@@ -737,13 +736,15 @@ def main():
         for i in range(args.tries):
             fifa.BuyRandomItem()
             random_sleep(3, 9)
-            if args.sell and fifa.purchased_count and not i % 20:
-                fifa.SellPurchasedItems()
+            # try to sell all items once per 20 searches
+            if args.sell and fifa.purchased_count and not fifa.purchased_count % 5:
+                fifa.MovePurchasedItems()
+                fifa.SellFromTradePile()
             if fifa.bid_limit <= 0:
                 break
 
     if args.sell:
-        # fifa.SellPurchasedItems()
+        # fifa.MovePurchasedItems()
         fifa.SellFromTradePile()
 
     if args.decode_url:

@@ -1,9 +1,10 @@
-- name: AllCheapSilverIrish
+- name: UCL ESP1
   params:
-    lev: silver
-    maxb: 1400
     minb: 300
-    nat: 25
+    maxb: 1000
+    rare: SP
     type: player
+    leag: 53
   profit: 1000
   resourceId: 0
+

@@ -2,11 +2,9 @@
   params:
     leag: 53
     lev: silver
-    maxb: 9000
+    minb: 400
+    maxb: 3000
     team: 453
     type: player
     zone: defense
-  prices:
-    bid_limit: 2000
-    buynow: 9500
-    start: 150
+  profit: 2000

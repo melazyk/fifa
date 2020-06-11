@@ -1,6 +1,6 @@
 - name: Special
   params:
-    maxb: 1000
+    maxb: 850
     rare: SP
     type: player
   profit: 800

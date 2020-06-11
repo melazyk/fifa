@@ -8,7 +8,6 @@ params:
 
 market_page_size: 20
 market_page_limit: 200
-market_page_limit: 20
 
 influxdb:
   url: 'http://localhost:9999'
