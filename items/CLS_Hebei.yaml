@@ -1,0 +1,9 @@
+- name: CLS Gold Hebei
+  params:
+    leag: 2012
+    lev: gold
+    maxb: 8000
+    team: 112978
+    type: player
+  price: 8000
+  resourceId: 0

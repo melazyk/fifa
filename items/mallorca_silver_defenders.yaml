@@ -1,0 +1,10 @@
+- name: Mallorca Silver defs
+  params:
+    leag: 53
+    lev: silver
+    minb: 400
+    maxb: 3000
+    team: 453
+    type: player
+    zone: defense
+  profit: 2000

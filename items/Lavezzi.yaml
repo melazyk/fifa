@@ -1,0 +1,12 @@
+- name: Lavezzi
+  params:
+    maskedDefId: 159065
+    maxb: 5000
+    type: player
+  prices:
+    bid_limit: 9400
+    buynow: 9500
+    start: 9400
+  rating: 79
+  resourceId: 159065
+

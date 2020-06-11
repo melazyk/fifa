@@ -1,0 +1,6 @@
+- name: Icons
+  params:
+    leag: 2118
+    maxb: 80000
+    type: player
+  profit: 50000

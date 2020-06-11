@@ -1,14 +1,14 @@
 - name: Norvich Defenders Silver
   params:
     leag: 13
-    maxb: 6000
-    start: 0
-    lev: silver
+    maxb: 2000
+    minb: 0
+    #    lev: silver
     team: 1792
     type: player
     zone: defense
   prices:
-    bid_limit: 6000
+    bid_limit: 2000
     buynow: 11000
     start: 10000
   rating: 60

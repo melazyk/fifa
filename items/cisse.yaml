@@ -1,0 +1,12 @@
+- name: Cisse TOTS
+  params:
+    maskedDefId: 177765
+    rare: SP
+    type: player
+    maxb: 30000
+  prices:
+    bid_limit: 28750
+    buynow: 33000
+    start: 28750
+  rating: 88
+  resourceId: 50509413

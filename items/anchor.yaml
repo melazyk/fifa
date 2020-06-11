@@ -1,0 +1,10 @@
+- name: Anchor
+  params:
+    cat: playStyle
+    maxb: 3500
+    playStyle: 265
+    type: training
+  prices:
+    buynow: 5000
+    start: 4700
+  resourceId: 5003110

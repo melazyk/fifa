@@ -1,0 +1,10 @@
+- name: Norvich Silver
+  params:
+    leag: 13
+    maxb: 2000
+    lev: silver
+    team: 1792
+    type: player
+  price: 10000
+  profit: 1000
+  resourceId: 0
