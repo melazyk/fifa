@@ -1,0 +1,216 @@
+---
+# Contracts
+- name: 'Gold Player Contracts +28'
+  itemType: development
+  definitionId: 5001006
+  price: -1  #  SendToClub
+- name: 'Gold Player Contracts +13'
+  itemType: development
+  definitionId: 5001003
+  price: -1  #  SendToClub
+- name: 'Gold Manager Contracts +28'
+  itemType: development
+  definitionId: 5001013
+  price: -1  #  SendToClub
+
+# Manager Leagues
+- name: 'ENG 1'
+  itemType: training
+  definitionId: 5003123
+  price: 0
+- name: 'FRA 1'
+  itemType: training
+  definitionId: 5003125
+  price: 0
+- name: 'ITA 1'
+  itemType: training
+  definitionId: 5003129
+  price: 0
+- name: 'GER 1'
+  itemType: training
+  definitionId: 5003127
+  price: 0
+- name: 'ESP 1'
+  itemType: training
+  definitionId: 5003134
+  price: 0
+
+# Chimestries
+- name: 'Basic Chimestry'
+  itemType: training
+  definitionId: 5003095
+  price: 2100
+- name: 'Sniper Chimestry'
+  itemType: training
+  definitionId: 5003096
+  price: 0
+- name: 'Finisher Chimestry'
+  itemType: training
+  definitionId: 5003097
+  price: 300
+- name: 'Deadeye Chimestry'
+  itemType: training
+  definitionId: 5003098
+  price: 300
+- name: 'Marksman Chimestry'
+  itemType: training
+  definitionId: 5003099
+  price: 0
+- name: 'Hawk Chimestry'
+  itemType: training
+  definitionId: 5003100
+  price: 200
+- name: 'Artist Chimestry'
+  itemType: training
+  definitionId: 5003101
+  price: 0 # QuickSell
+- name: 'Architect Chimestry'
+  itemType: training
+  definitionId: 5003102
+  price: 0 # QuickSell
+- name: 'Powerhouse Chimestry'
+  itemType: training
+  definitionId: 5003103
+  price: 0 # QuickSell
+- name: 'Maestro Chimestry'
+  itemType: training
+  definitionId: 5003104
+  price: 0 # QuickSell
+- name: 'Engine Chimestry'
+  itemType: training
+  definitionId: 5003105
+  price: 200
+- name: 'Sentinel Chimestry'
+  itemType: training
+  definitionId: 5003106
+  price: 0 # QuickSell
+- name: 'Guardian Chimestry'
+  itemType: training
+  definitionId: 5003107
+  price: 0 # QuickSell
+- name: 'Gladiator Chimestry'
+  itemType: training
+  definitionId: 5003108
+  price: 0 # QuickSell
+- name: 'Backbone Chimestry'
+  itemType: training
+  definitionId: 5003109
+  price: 0 # QuickSell
+- name: 'Anchor Chimestry'
+  itemType: training
+  definitionId: 5003110
+  price: 500
+- name: 'Hunter Chimestry'
+  itemType: training
+  definitionId: 5003111
+  price: 2000
+- name: 'Catalyst Chimestry'
+  itemType: training
+  definitionId: 5003112
+  price: 250
+- name: 'Shadow Chimestry'
+  itemType: training
+  definitionId: 5003113
+  price: 4300
+- name: 'Wall Chimestry'
+  itemType: training
+  definitionId: 5003114
+  price: 0 # QuickSell
+- name: 'Shield Chimestry'
+  itemType: training
+  definitionId: 5003115
+  price: 0 # QuickSell
+- name: 'Cat Chimestry'
+  itemType: training
+  definitionId: 5003116
+  price: 0 # QuickSell
+- name: 'Glove Chimestry'
+  itemType: training
+  definitionId: 5003117
+  price: 0 # QuickSell
+- name: 'GK Basic Chimestry'
+  itemType: training
+  definitionId: 5003118
+  price: 4000
+
+# Positions
+- name: 'LWB >> LB'
+  itemType: training
+  definitionId: 5003059
+  price: 0 # QuickSell
+- name: 'LB >> LWB'
+  itemType: training
+  definitionId: 5003060
+  price: 0 # QuickSell
+- name: 'RWB >> RB'
+  itemType: training
+  definitionId: 5003061
+  price: 0
+- name: 'RB >> RWB'
+  itemType: training
+  definitionId: 5003062
+  price: 0 # QuickSell
+- name: 'LM >> LW'
+  itemType: training
+  definitionId: 5003063
+  price: 2100
+- name: 'LW >> LM'
+  itemType: training
+  definitionId: 5003065
+  price: 1000
+- name: 'RM >> RW'
+  itemType: training
+  definitionId: 5003064
+  price: 900
+- name: 'RW >> RM'
+  itemType: training
+  definitionId: 5003066
+  price: 500
+- name: 'LW >> LF'
+  itemType: training
+  definitionId: 5003067
+  price: 0
+- name: 'LF >> LW'
+  itemType: training
+  definitionId: 5003069
+  price: 0 # QuickSell
+- name: 'RW >> RF'
+  itemType: training
+  definitionId: 5003068
+  price: 0
+- name: 'RF >> RW'
+  itemType: training
+  definitionId: 5003070
+  price: 0 # QuickSell
+- name: 'CM >> CAM'
+  itemType: training
+  definitionId: 5003071
+  price: 1200
+- name: 'CAM >> CM'
+  itemType: training
+  definitionId: 5003072
+  price: 5000
+- name: 'CM >> CDM'
+  itemType: training
+  definitionId: 5003074
+  price: 1400
+- name: 'CDM >> CM'
+  itemType: training
+  definitionId: 5003073
+  price: 2900
+- name: 'CAM >> CF'
+  itemType: training
+  definitionId: 5003075
+  price: 250
+- name: 'CF >> CAM'
+  itemType: training
+  definitionId: 5003076
+  price: 300
+- name: 'CF >> ST'
+  itemType: training
+  definitionId: 5003077
+  price: 1300
+- name: 'ST >> CF'
+  itemType: training
+  definitionId: 5003078
+  price: 4100

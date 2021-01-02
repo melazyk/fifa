@@ -5,7 +5,7 @@
     maxb: 1000
     team: 10030
     type: player
-  profit: 2000
+  profit: 1000
   resourceId: 0
 - name: Mallorca Silver defs
   params:
@@ -16,12 +16,12 @@
     team: 453
     type: player
     zone: defense
-  profit: 2000
+  profit: 1000
   resourceId: 0
-- name: Icons
-  params:
-    leag: 2118
-    minb: 1000
-    maxb: 74000
-    type: player
-  profit: 20000
+  #- name: Icons
+  #  params:
+  #    leag: 2118
+  #    minb: 1000
+  #    maxb: 74000
+  #    type: player
+  #  profit: 20000

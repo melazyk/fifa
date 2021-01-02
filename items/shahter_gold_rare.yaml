@@ -1,0 +1,9 @@
+- name: Shahter brazil
+  params:
+    type: player
+    lev: gold
+    leag: 332
+    team: 101059
+    rarityIds: 1
+    maxb: 6000
+  profit: 2000

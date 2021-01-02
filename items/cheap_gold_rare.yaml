@@ -1,0 +1,7 @@
+- name: cheap rare gold
+  params:
+    type: player
+    lev: gold
+    maxb: 650
+    rarityIds: 1
+  profit: 500

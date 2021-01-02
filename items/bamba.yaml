@@ -1,0 +1,6 @@
+- name: Bamba
+  params:
+    type: player
+    maskedDefId: 232756
+    lev: gold
+    maxb: 1000

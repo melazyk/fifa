@@ -1,0 +1,5 @@
+- name: Tadic
+  params:
+    type: player
+    maskedDefId: 199434
+    maxb: 6000

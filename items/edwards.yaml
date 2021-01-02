@@ -1,0 +1,6 @@
+- name: Edwards
+  params:
+    type: player
+    maskedDefId: 235619
+    lev: gold
+    maxb: 700

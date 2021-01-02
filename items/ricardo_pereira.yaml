@@ -1,0 +1,6 @@
+- name: Ricardo Pereira
+  params:
+    type: player
+    maskedDefId: 210243
+    minb: 300
+    maxb: 13000
