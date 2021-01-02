@@ -1,0 +1,29 @@
+---
+base_url: 'https://utas.external.s2.fut.ea.com'
+web_port: 8080
+# logfile: fifa.log
+params:
+  start: 0
+  num: 21  # must be market_page_size+1
+
+market_page_size: 20
+market_page_limit: 200
+
+influxdb:
+  url: 'http://localhost:9999'
+  token: 'a0ZniAJJijQ5tD82tl-XBLfgvjz8C4U05oi78KKyZE-xikKqjivAeiys7S2mfOEPJbWzJHvqyWAcnMc-Fne6Jw=='
+  org: 'Home'
+  bucket: 'fifa'
+
+headers:
+  Accept: '*/*'
+  Accept-Encoding: 'gzip, deflate, br'
+  Accept-Language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6,fr;q=0.5'
+  DNT: '1'
+  Origin: 'https://www.ea.com'
+  Referer: 'https://www.ea.com/'
+  Sec-Fetch-Dest: 'empty'
+  Sec-Fetch-Mode: 'cors'
+  Sec-Fetch-Site: 'same-site'
+  User-Agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'
+  X-UT-SID: 'not valid SID'
