@@ -1,0 +1,18 @@
+- name: Luiz Felipe
+  params:
+    type: player
+    maskedDefId: 236355
+    maxb: 4000
+  profit: 2000
+- name: Renun Lodi
+  params:
+    type: player
+    maskedDefId: 251573
+    maxb: 4000
+  profit: 2000
+- name: Angelino
+  params:
+    type: player
+    maskedDefId: 220651
+    maxb: 4000
+  profit: 2000

@@ -1,0 +1,6 @@
+- name: Jules Kounde
+  params:
+    type: player
+    maskedDefId: 241486
+    maxb: 5000
+  profit: 1000

@@ -1,13 +1,7 @@
 ---
 - name: Sissoko
   params:
-    lev: gold
+    type: player
     maskedDefId: 183394
     maxb: 2100
-    type: player
-  prices:
-    bid_limit: 2300
-    buynow: 3400
-    start: 3000
-  rating: 81
-  resourceId: 183394
+    minb: 200

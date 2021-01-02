@@ -1,7 +1,8 @@
 - name: Icons
   params:
-    leag: 2118
-    minb: 1000
-    maxb: 72000
     type: player
-  profit: 20000
+    rare: SP
+    leag: 2118
+    minb: 300
+    maxb: 165000
+#  profit: 5000

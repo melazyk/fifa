@@ -1,0 +1,6 @@
+- name: Courtois
+  params:
+    type: player
+    maskedDefId: 192119
+    minb: 1100
+    maxb: 44000

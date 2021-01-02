@@ -1,0 +1,6 @@
+- name: Brazil Manager
+  params:
+    type: staff
+    cat: manager
+    nat: 54
+    maxb: 3000

@@ -1,0 +1,11 @@
+- name: totw
+  params:
+    type: player
+    maxb: 8000
+    rarityIds: 3
+  profit: 5000
+      #- name: Cheap TOTW Moments
+      #  params:
+      #    type: player
+      #    maxb: 20000
+      #    rarityIds: 58

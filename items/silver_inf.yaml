@@ -1,0 +1,6 @@
+- name: Silver InForm
+  params:
+    type: player
+    lev: silver
+    maxb: 17000
+    rarityIds: 3

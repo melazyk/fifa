@@ -1,0 +1,6 @@
+- name: Ederson
+  params:
+    type: player
+    maskedDefId: 210257
+    maxb: 33000
+    minb: 200

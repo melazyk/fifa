@@ -1,0 +1,8 @@
+- name: Atletico Madrid
+  params:
+    type: player
+    lev: gold
+    leag: 53
+    team: 240
+    maxb: 800
+  profit: 500
