@@ -1,9 +1,0 @@
-- name: Pepe
-  params:
-    type: player
-    maskedDefId: 120533
-    pos: CB
-    minb: 1000
-    maxb: 12000
-    rating: 84
-  resourceId: 120533

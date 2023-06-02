@@ -1,7 +1,0 @@
-- name: CAM-CM
-  params:
-    type: training
-    cat: position
-    pos: CAM-CM
-    minb: 1400
-    maxb: 5000

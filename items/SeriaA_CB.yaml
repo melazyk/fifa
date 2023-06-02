@@ -1,6 +1,0 @@
-- name: Seria A CB
-  params:
-    type: player
-    pos: CB
-    leag: 31
-    maxb: 700

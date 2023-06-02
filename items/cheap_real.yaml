@@ -1,5 +1,0 @@
-- name: Cheap Real
-  params:
-    type: player
-    team: 243
-    maxb: 700

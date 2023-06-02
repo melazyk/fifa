@@ -1,7 +1,0 @@
-- name: Silver Wales
-  params:
-    type: player
-    lev: silver
-    nat: 50
-    maxb: 1800
-  profit: 800

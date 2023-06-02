@@ -1,8 +1,0 @@
-- name: Gold
-  params:
-    maxb: 350
-    lev: gold
-    type: player
-  profit: 2000
-  resourceId: 0
-

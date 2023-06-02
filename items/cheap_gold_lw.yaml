@@ -1,7 +1,0 @@
-- name: CheapLW
-  params:
-    type: player
-    pos: LW
-    lev: gold
-    maxb: 600
-  profit: 500

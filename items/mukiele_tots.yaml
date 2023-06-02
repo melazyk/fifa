@@ -1,8 +1,0 @@
-- name: Mukiele
-  params:
-    type: player
-    maskedDefId: 226166
-    rare: SP
-    maxb: 120000
-    rarityIds: 66
-  profit: 20000

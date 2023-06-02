@@ -1,3 +1,5 @@
 influxdb-client
 PyYAML
 requests
+aiohttp
+simplejson

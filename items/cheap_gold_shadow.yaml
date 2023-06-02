@@ -1,7 +1,0 @@
-- name: Cheap Gold Shadow
-  params:
-    type: player
-    lev: gold
-    playStyle: 268
-    maxb: 1000
-    minb: 200

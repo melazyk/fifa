@@ -1,8 +1,0 @@
-- name: Almeida
-  params:
-    type: player
-    maskedDefId: 194022
-    minb: 300
-    maxb: 2000
-  profit: 500
-  resourceId: 0

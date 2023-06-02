@@ -1,6 +1,0 @@
-- name: Tamori
-  params:
-    type: player
-    maskedDefId: 232756
-    lev: gold
-    maxb: 900

@@ -1,6 +1,0 @@
-- name: Ozil
-  params:
-    type: player
-    maskedDefId: 176635
-    minb: 1200
-    maxb: 14250

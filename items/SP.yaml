@@ -1,8 +1,0 @@
-- name: Special
-  params:
-    maxb: 850
-    rare: SP
-    type: player
-  profit: 800
-  resourceId: 0
-

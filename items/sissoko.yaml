@@ -1,7 +1,0 @@
----
-- name: Sissoko
-  params:
-    type: player
-    maskedDefId: 183394
-    maxb: 2100
-    minb: 200

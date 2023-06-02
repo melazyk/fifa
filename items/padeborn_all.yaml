@@ -1,9 +1,0 @@
-- name: Paderborn
-  params:
-    leag: 19
-    minb: 300
-    maxb: 1000
-    team: 10030
-    type: player
-  profit: 2000
-  resourceId: 0

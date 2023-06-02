@@ -1,6 +1,0 @@
-- name: MarioRui
-  params:
-    type: player
-    maskedDefId:  204614
-    lev: gold
-    maxb: 1000

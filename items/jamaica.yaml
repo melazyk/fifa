@@ -1,5 +1,0 @@
-- name: Jamaika Players
-  params:
-    type: player
-    nat: 82
-    maxb: 400

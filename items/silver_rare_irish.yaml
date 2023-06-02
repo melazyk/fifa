@@ -1,8 +1,0 @@
-- name: Rare Irish
-  params:
-    type: player
-    lev: silver
-    nat: 25
-    maxb: 4000
-    rarityIds: 1
-  profit: 1000

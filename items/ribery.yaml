@@ -1,6 +1,0 @@
-- name: Ribery
-  params:
-    type: player
-    maskedDefId: 156616
-    maxb: 5000
-  resourceId: 0

@@ -1,5 +1,0 @@
-- name: Casillas
-  params:
-    type: player
-    maskedDefId: 5479
-    maxb: 4000

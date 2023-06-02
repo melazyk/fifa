@@ -1,6 +1,0 @@
-- name: Almiron
-  params:
-    type: player
-    maskedDefId: 230977
-    lev: gold
-    maxb: 900

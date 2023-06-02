@@ -1,7 +1,0 @@
-- name: Cheap German CB
-  params:
-    type: player
-    pos: CB
-    nat: 21
-    leag: 19
-    maxb: 500

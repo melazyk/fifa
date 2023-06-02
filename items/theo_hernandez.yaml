@@ -1,6 +1,0 @@
-- name: Theo Hernandez
-  params:
-    type: player
-    maskedDefId: 232656
-    maxb: 5000
-    minb: 200

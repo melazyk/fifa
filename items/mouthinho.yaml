@@ -1,6 +1,0 @@
-- name: Mouthinho
-  pararms:
-    type: player
-    maskedDefId: 162347
-    minb: 650
-    maxb: 14250

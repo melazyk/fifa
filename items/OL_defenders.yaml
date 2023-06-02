@@ -1,7 +1,0 @@
-- name: OL Defenders
-  params:
-    type: player
-    zone: defense
-    team: 66
-    maxb: 600
-  profit: 300

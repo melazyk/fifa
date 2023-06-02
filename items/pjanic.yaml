@@ -1,7 +1,0 @@
-- name: Pjanic
-  params:
-    type: player
-    maskedDefId: 180206
-    pos: CM
-    minb: 300
-    maxb: 16000

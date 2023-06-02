@@ -1,6 +1,0 @@
-- name: Cheap German
-  params:
-    type: player
-    nat: 21
-    leag: 19
-    maxb: 400

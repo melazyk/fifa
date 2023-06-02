@@ -1,7 +1,0 @@
-- name: Icons Defs
-  params:
-    leag: 2118
-    maxb: 130000
-    type: player
-    zone: defense
-  profit: 50000
